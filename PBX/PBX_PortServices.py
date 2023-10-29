@@ -1,8 +1,6 @@
-import socket
+import PBX_Constants as const
 import select
-import MRD_constants as const
-import time
-
+import socket
 
 #------------------------------------------------------------
 def bindPorts(A, B, linkedPorts, clientSockets):

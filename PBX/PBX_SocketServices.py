@@ -1,6 +1,6 @@
 import socket 
-import PortServices as ps
-import MRD_constants as const
+import PBX_PortServices as ps
+import PBX_Constants as const
 import select
 
 #------------------------------------------------------------
@@ -13,13 +13,13 @@ def createSocket(ip, port):
     return sck
 
 #------------------------------------------------------------
-def createServersListeningOn(ports, baseSocketIP):
+def createServersListeningOn(ports):
     serverList = []
     for port in ports:
-        s = createSocket(baseSocketIP, port)
+        s = createSocket(const.BASE_SOCKET_IP, port)
         if s is not None:
             serverList.append(s)
-            print(f"[*] Socket on port {port}")
+            print(f"[*] Socket on port {port} listening for connections")
         else:
             print(f"ERROR: Could not create socket on port {port}")
     return serverList
@@ -38,7 +38,7 @@ def checkAndRemoveClosedConnections(clientSockets):
         try:
             c.send("".encode('utf-8'))
         except socket.error as e:
-            closedConnections.append(s)
+            closedConnections.append(c)
     return closedConnections
 
 #------------------------------------------------------------

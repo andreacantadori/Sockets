@@ -1,8 +1,6 @@
-import socket 
-import select
-import SocketServices as ss
-import PortServices as ps
-import MRD_constants as const
+import PBX_SocketServices as ss
+import PBX_PortServices as ps
+import PBX_Constants as const
 
 # Base ports are only used to get the port numbers for the OETool and Workshop
 # The port numbers are stored in lists
@@ -13,10 +11,11 @@ OEToolPorts = [const.BASE_OETOOL_PORT + i for i in range(const.N_PORTS)]
 #------------------------------------------------------------
 def main():
 
+    print(f"[*] Starting PBX server on {const.BASE_SOCKET_IP}")
     # Create list of server sockets
-    serverSockets  = ss.createServersListeningOn(OEToolPorts, const.BASE_SOCKET_IP)
-    serverSockets += ss.createServersListeningOn(workshopPorts, const.BASE_SOCKET_IP)
-    serverSockets += ss.createServersListeningOn([const.CONTROL_PORT], const.BASE_SOCKET_IP)
+    serverSockets  = ss.createServersListeningOn(OEToolPorts)
+    serverSockets += ss.createServersListeningOn(workshopPorts)
+    serverSockets += ss.createServersListeningOn([const.CONTROL_PORT])
 
     # Mutable list of sockets to monitor for I/O (server and client sockets)
     # CLient sockets are added to this list when they connect
@@ -34,10 +33,12 @@ def main():
             # In each loop we constantly chck for closed connections
             # and remove them from the list of sockets to monitor
             # We also unbind any ports that are no longer in use
-            for c in ss.checkAndRemoveClosedConnections(clientSockets):
+            for s in ss.checkAndRemoveClosedConnections(clientSockets):
                 socketsList.remove(s)
                 clientSockets.remove(s)
-                ps.unbindPort(portForSocket(c), linkedPorts)
+                _, port = s.getsockname()
+                if port != const.CONTROL_PORT:
+                    ps.unbindPort(portForSocket(s), linkedPorts)
             # Check for sockets ready for reading, i.e. sockets that have received data
             for s in ss.socketsReadyForReading(socketsList):
                 # First serve client sockets, then server sockets
